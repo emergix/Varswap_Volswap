@@ -1,11 +1,7 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
-using EDAProto;
-using GlobalDerivativesApplications.EdaProto;
-using ExcelDna.Integration;
-
 
 namespace Interpolation
 {
@@ -650,35 +646,35 @@ namespace Interpolation
                     l_vIndex[l_lIndexJ] = 0;
                 else
                     if (p_vX[p_vX.Length - 1] < p_vValue[l_lIndexJ])
-                        l_vIndex[l_lIndexJ] = p_vX.Length;
-                    else
-                    // dichotomie : on cherche i / X[i-1] < Target[j] <= X[i]
+                    l_vIndex[l_lIndexJ] = p_vX.Length;
+                else
+                // dichotomie : on cherche i / X[i-1] < Target[j] <= X[i]
+                {
+                    l_lIndexInf = l_lBorneInf;
+                    l_lIndexSup = l_lBorneSup;
+                    l_lIndexMid = (int)((l_lIndexSup + l_lIndexInf) / 2);
+                    while (l_lIndexSup - l_lIndexInf > 1)
                     {
-                        l_lIndexInf = l_lBorneInf;
-                        l_lIndexSup = l_lBorneSup;
-                        l_lIndexMid = (int)((l_lIndexSup + l_lIndexInf) / 2);
-                        while (l_lIndexSup - l_lIndexInf > 1)
-                        {
-                            if (p_vValue[l_lIndexJ] - p_vX[l_lIndexInf] > 0 && p_vValue[l_lIndexJ] - p_vX[l_lIndexMid] <= 0)
-                            {	// i appartient à ]inf,mid]
-                                l_lIndexSup = l_lIndexMid;
-                                l_lIndexMid = (int)((l_lIndexInf + l_lIndexMid) / 2);
-                            }
-                            else
-                            {	// i appartient à ]mid,max]
-                                l_lIndexInf = l_lIndexMid;
-                                l_lIndexMid = (int)((l_lIndexSup + l_lIndexMid) / 2);
-                            }
+                        if (p_vValue[l_lIndexJ] - p_vX[l_lIndexInf] > 0 && p_vValue[l_lIndexJ] - p_vX[l_lIndexMid] <= 0)
+                        {	// i appartient à ]inf,mid]
+                            l_lIndexSup = l_lIndexMid;
+                            l_lIndexMid = (int)((l_lIndexInf + l_lIndexMid) / 2);
                         }
-
-                        l_vIndex[l_lIndexJ] = l_lIndexSup;
-
-                        // on resserre les bornes en fonctions des solutions précédentes
-                        if (l_lIndexI % 2 == 0)
-                            l_lBorneInf = l_lIndexInf;
-                        if (l_lIndexI % 2 == 1)
-                            l_lBorneSup = l_lIndexSup;
+                        else
+                        {	// i appartient à ]mid,max]
+                            l_lIndexInf = l_lIndexMid;
+                            l_lIndexMid = (int)((l_lIndexSup + l_lIndexMid) / 2);
+                        }
                     }
+
+                    l_vIndex[l_lIndexJ] = l_lIndexSup;
+
+                    // on resserre les bornes en fonctions des solutions précédentes
+                    if (l_lIndexI % 2 == 0)
+                        l_lBorneInf = l_lIndexInf;
+                    if (l_lIndexI % 2 == 1)
+                        l_lBorneSup = l_lIndexSup;
+                }
             }
             return l_vIndex;
         }
@@ -1245,293 +1241,339 @@ namespace Interpolation
 
 
     }
+
+    public static class CToolsArray
+    {
+        public static double[] getExp(double[] v)
+        {
+            double[] res = new double[v.Length];
+            for (int i = 0; i < v.Length; i++)
+            {
+                res[i] = Math.Exp(v[i]);
+            }
+            return res;
+        }
+
+        public static double[] getSqrt(double[] v)
+        {
+            double[] res = new double[v.Length];
+            for (int i = 0; i < v.Length; i++)
+            {
+                res[i] = Math.Sqrt(Math.Max(v[i], 0.0));
+            }
+            return res;
+        }
+
+        public static double[] getLn(double[] v)
+        {
+            double[] res = new double[v.Length];
+            for (int i = 0; i < v.Length; i++)
+            {
+                res[i] = Math.Log(v[i]);
+            }
+            return res;
+        }
+
+        public static double[] getProduct(double[] v1, double[] v2)
+        {
+            double[] res = new double[v1.Length];
+            for (int i = 0; i < v1.Length; i++)
+            {
+                res[i] = v1[i] * v2[i];
+            }
+            return res;
+        }
+    }
+
+    public static class CNumericalFunction
+    {
+        public static double pdfNR(double d)
+        {
+            return GaussianDistribution.gaussian_cumulative(d);
+        }
+
+        public static void sort(double[] v, int[] ord)
+        {
+            Array.Sort(v, ord);
+        }
+    }
 }
 
 
 namespace BergomiTwoFactors
 {
-    public  class ParabolicVolatlityModel
-        {
+    public class ParabolicVolatlityModel
+    {
         double m_SigmaVariance, m_SigmaSkew, m_SigmaCurvature, m_SigmaAlpha, m_SigmaBeta, m_tenorPivot, m_volMinimum, m_MoneynessTurningPoint, m_lambda, m_T;
 
-            public ParabolicVolatlityModel(double SigmaVariance, double SigmaSkew, double SigmaCurvature, double SigmaAlpha)
-            {
-                m_SigmaCurvature = SigmaCurvature;
-                m_SigmaSkew = SigmaSkew;
-                m_SigmaVariance = SigmaVariance;
-                m_SigmaAlpha = SigmaAlpha;
-                m_tenorPivot = 0.25;
-                m_volMinimum = 0.05;
-                m_SigmaBeta = 0.0;
-                m_MoneynessTurningPoint = 0.0;
-                m_lambda = 0.0;
-                m_T = 0.0;
-               
-            }
-            public ParabolicVolatlityModel(double SigmaVariance, double SigmaSkew, double SigmaCurvature, double SigmaAlpha, double SigmaBeta)
-            {
-                m_SigmaCurvature = SigmaCurvature;
-                m_SigmaSkew = SigmaSkew;
-                m_SigmaVariance = SigmaVariance;
-                m_SigmaAlpha = SigmaAlpha;
-                m_SigmaBeta = SigmaBeta;
-                m_tenorPivot = 0.25;
-                m_volMinimum = 0.05;
-                m_SigmaBeta = SigmaBeta;
-                m_MoneynessTurningPoint = 0.0;
-                m_lambda = 0.0;
-                m_T = 0.0;
-               
-            }
-
-            public double getVol(double moneyness, double T)  // moneyness = F0/K
-            {
-               
-                double inflexion , result, SigmaVarianceEffective;
-
-                SigmaVarianceEffective = m_SigmaBeta+m_SigmaVariance * Math.Pow(T / m_tenorPivot, m_SigmaAlpha);
-
-                if (m_SigmaCurvature >= 0) 
-                {
-                    inflexion = 10.0;
-                }
-                else
-                {
-                    inflexion = -m_SigmaSkew /(2.0* m_SigmaCurvature);
-                }
-                if ( moneyness-1.0 >= inflexion)
-                {
-                    result = SigmaVarianceEffective - m_SigmaSkew*m_SigmaSkew/(4.0*m_SigmaCurvature);
-                }
-                else
-                {
-                    result = SigmaVarianceEffective + (moneyness - 1.0) * m_SigmaSkew + (moneyness - 1.0) * (moneyness - 1.0) * m_SigmaCurvature;
-                }
-                if(result < m_volMinimum)
-                {
-                    result = m_volMinimum;
-                }
-
-                return result;
-            }
-            public double ComputeTurningMoneyness(double T)
-            {
-                if(m_SigmaCurvature >= 0)  return 0.0;              
-                double  SigmaVarianceEffective = m_SigmaBeta+m_SigmaVariance * Math.Pow(T / m_tenorPivot, m_SigmaAlpha);
-                double TurningMoneyness =(2.0 * m_SigmaCurvature - m_SigmaSkew+Math.Sqrt(-4.0*SigmaVarianceEffective*m_SigmaCurvature+m_SigmaSkew*m_SigmaSkew+4.0*m_SigmaCurvature*m_volMinimum))/(2.0*m_SigmaCurvature);
-                return TurningMoneyness;
-            }
-
-            public ParabolicVolatlityModel(double SigmaVariance, double SigmaSkew, double SigmaCurvature, double SigmaAlpha, double SigmaBeta, double T)
-            {
-                m_T = T;
-                m_SigmaCurvature = SigmaCurvature;
-                m_SigmaSkew = SigmaSkew;
-                m_SigmaVariance = SigmaVariance;
-                m_SigmaAlpha = SigmaAlpha;
-                m_SigmaBeta = SigmaBeta;
-                m_tenorPivot = 0.25;
-                m_volMinimum = 0.05;
-                m_SigmaBeta = SigmaBeta;
-                m_MoneynessTurningPoint = ComputeTurningMoneyness(T);
-                m_lambda = (2.0 * (-1.0 + m_MoneynessTurningPoint) * m_SigmaCurvature + m_SigmaSkew) / m_volMinimum;
-               
-
-            }
-
-            public double getVol2(double moneyness,double T)  // moneyness = F0/K
-            {
-                double result;
-                if (moneyness <= m_MoneynessTurningPoint)
-                    result = m_volMinimum * Math.Exp(m_lambda * (moneyness - m_MoneynessTurningPoint));
-                else
-                    result = getVol(moneyness, T);
-               
-                return result;
-            }
-        }
-
-    
-
-     public  class BergomiVolatilityModel
-     {
-         double mk1,  mk2,  mtheta,  mrho,  momega;
-         double [] mforwardList;
-         double mT,mT1,mdt;  
-         Bergomi2factors.volatilityFunctor mImpliedVolFunc;
-
-        public BergomiVolatilityModel(double k1, double k2, double theta,double  rho, double omega,double T,double T1,double dt,double [] forwardList, Bergomi2factors.volatilityFunctor ImpliedVolFunc)
+        public ParabolicVolatlityModel(double SigmaVariance, double SigmaSkew, double SigmaCurvature, double SigmaAlpha)
         {
-            mk1=k1;mk2=k2;mtheta=theta;mrho=rho;momega=omega;mT=T;mT1=T1;mdt=dt; mforwardList=forwardList;mImpliedVolFunc=ImpliedVolFunc;
+            m_SigmaCurvature = SigmaCurvature;
+            m_SigmaSkew = SigmaSkew;
+            m_SigmaVariance = SigmaVariance;
+            m_SigmaAlpha = SigmaAlpha;
+            m_tenorPivot = 0.25;
+            m_volMinimum = 0.05;
+            m_SigmaBeta = 0.0;
+            m_MoneynessTurningPoint = 0.0;
+            m_lambda = 0.0;
+            m_T = 0.0;
+
         }
-        public double getVol(double k ,double T)
+        public ParabolicVolatlityModel(double SigmaVariance, double SigmaSkew, double SigmaCurvature, double SigmaAlpha, double SigmaBeta)
         {
-                return Bergomi2factors.BasketVolatility( mk1,  mk2,  mtheta,  mrho,  momega,mforwardList, mImpliedVolFunc,  T,  mT1,  mdt,  k);
+            m_SigmaCurvature = SigmaCurvature;
+            m_SigmaSkew = SigmaSkew;
+            m_SigmaVariance = SigmaVariance;
+            m_SigmaAlpha = SigmaAlpha;
+            m_SigmaBeta = SigmaBeta;
+            m_tenorPivot = 0.25;
+            m_volMinimum = 0.05;
+            m_SigmaBeta = SigmaBeta;
+            m_MoneynessTurningPoint = 0.0;
+            m_lambda = 0.0;
+            m_T = 0.0;
+
         }
 
-     }
-     public class BergomiVolatilityModel2
-     {
-         double mk1, mk2, mtheta, mrho, momega, mSigmaVariance, mSigmaSkew, mSigmaCurvature, mSigmaAlpha, mSigmaBeta; int mNbLegendre, minterpolMod;
-         double[] mvarList; double[] mdatelist;
-         double mT, mT1, mT2, mdt;
+        public double getVol(double moneyness, double T)  // moneyness = F0/K
+        {
 
-         public BergomiVolatilityModel2(double k1, double k2, double theta, double rho, double omega, double SigmaVariance, double SigmaSkew, double SigmaCurvature, double SigmaAlpha,double SigmaBeta, double T, double T1, double T2, double dt, double[] varList, double[] datelist, int NbLegendre, int interpolMod )
-         {
-             mk1 = k1; mk2 = k2; mtheta = theta; mrho = rho; momega = omega; mT = T; mT1 = T1; mT2 = T2; mdt = dt;
-             mvarList = varList; mdatelist = datelist; mNbLegendre = NbLegendre; minterpolMod = interpolMod;
-             mSigmaVariance = SigmaVariance; mSigmaSkew = SigmaSkew; mSigmaCurvature = SigmaCurvature; mSigmaAlpha = SigmaAlpha; mSigmaBeta = SigmaBeta;
-         }
-         public double getVol(double moneyness, double T)
-         {
-             return Bergomi2factors.Bergomi_VarianceSwapVolatility2(mk1, mk2, mtheta, mrho, momega,
-                     mvarList, mdatelist, T, moneyness, mT1, mT2, mSigmaVariance, mSigmaSkew, mSigmaCurvature, mSigmaAlpha, mSigmaBeta, mdt, mNbLegendre, minterpolMod
-                                );
-         }
+            double inflexion, result, SigmaVarianceEffective;
 
-         public double getVol2(double moneyness, double T)
-         {
-             return Bergomi2factors.Bergomi_VarianceSwapVolatility22(mk1, mk2, mtheta, mrho, momega,
-                     mvarList, mdatelist, T, moneyness, mT1, mT2, mSigmaVariance, mSigmaSkew, mSigmaCurvature, mSigmaAlpha, mSigmaBeta, mdt, mNbLegendre, minterpolMod
-                                );
-         }
+            SigmaVarianceEffective = m_SigmaBeta + m_SigmaVariance * Math.Pow(T / m_tenorPivot, m_SigmaAlpha);
 
-     }
+            if (m_SigmaCurvature >= 0)
+            {
+                inflexion = 10.0;
+            }
+            else
+            {
+                inflexion = -m_SigmaSkew / (2.0 * m_SigmaCurvature);
+            }
+            if (moneyness - 1.0 >= inflexion)
+            {
+                result = SigmaVarianceEffective - m_SigmaSkew * m_SigmaSkew / (4.0 * m_SigmaCurvature);
+            }
+            else
+            {
+                result = SigmaVarianceEffective + (moneyness - 1.0) * m_SigmaSkew + (moneyness - 1.0) * (moneyness - 1.0) * m_SigmaCurvature;
+            }
+            if (result < m_volMinimum)
+            {
+                result = m_volMinimum;
+            }
+
+            return result;
+        }
+        public double ComputeTurningMoneyness(double T)
+        {
+            if (m_SigmaCurvature >= 0) return 0.0;
+            double SigmaVarianceEffective = m_SigmaBeta + m_SigmaVariance * Math.Pow(T / m_tenorPivot, m_SigmaAlpha);
+            double TurningMoneyness = (2.0 * m_SigmaCurvature - m_SigmaSkew + Math.Sqrt(-4.0 * SigmaVarianceEffective * m_SigmaCurvature + m_SigmaSkew * m_SigmaSkew + 4.0 * m_SigmaCurvature * m_volMinimum)) / (2.0 * m_SigmaCurvature);
+            return TurningMoneyness;
+        }
+
+        public ParabolicVolatlityModel(double SigmaVariance, double SigmaSkew, double SigmaCurvature, double SigmaAlpha, double SigmaBeta, double T)
+        {
+            m_T = T;
+            m_SigmaCurvature = SigmaCurvature;
+            m_SigmaSkew = SigmaSkew;
+            m_SigmaVariance = SigmaVariance;
+            m_SigmaAlpha = SigmaAlpha;
+            m_SigmaBeta = SigmaBeta;
+            m_tenorPivot = 0.25;
+            m_volMinimum = 0.05;
+            m_SigmaBeta = SigmaBeta;
+            m_MoneynessTurningPoint = ComputeTurningMoneyness(T);
+            m_lambda = (2.0 * (-1.0 + m_MoneynessTurningPoint) * m_SigmaCurvature + m_SigmaSkew) / m_volMinimum;
+
+
+        }
+
+        public double getVol2(double moneyness, double T)  // moneyness = F0/K
+        {
+            double result;
+            if (moneyness <= m_MoneynessTurningPoint)
+                result = m_volMinimum * Math.Exp(m_lambda * (moneyness - m_MoneynessTurningPoint));
+            else
+                result = getVol(moneyness, T);
+
+            return result;
+        }
+    }
+
+
+
+    public class BergomiVolatilityModel
+    {
+        double mk1, mk2, mtheta, mrho, momega;
+        double[] mforwardList;
+        double mT, mT1, mdt;
+        Bergomi2factors.volatilityFunctor mImpliedVolFunc;
+
+        public BergomiVolatilityModel(double k1, double k2, double theta, double rho, double omega, double T, double T1, double dt, double[] forwardList, Bergomi2factors.volatilityFunctor ImpliedVolFunc)
+        {
+            mk1 = k1; mk2 = k2; mtheta = theta; mrho = rho; momega = omega; mT = T; mT1 = T1; mdt = dt; mforwardList = forwardList; mImpliedVolFunc = ImpliedVolFunc;
+        }
+        public double getVol(double k, double T)
+        {
+            return Bergomi2factors.BasketVolatility(mk1, mk2, mtheta, mrho, momega, mforwardList, mImpliedVolFunc, T, mT1, mdt, k);
+        }
+
+    }
+    public class BergomiVolatilityModel2
+    {
+        double mk1, mk2, mtheta, mrho, momega, mSigmaVariance, mSigmaSkew, mSigmaCurvature, mSigmaAlpha, mSigmaBeta; int mNbLegendre, minterpolMod;
+        double[] mvarList; double[] mdatelist;
+        double mT, mT1, mT2, mdt;
+
+        public BergomiVolatilityModel2(double k1, double k2, double theta, double rho, double omega, double SigmaVariance, double SigmaSkew, double SigmaCurvature, double SigmaAlpha, double SigmaBeta, double T, double T1, double T2, double dt, double[] varList, double[] datelist, int NbLegendre, int interpolMod)
+        {
+            mk1 = k1; mk2 = k2; mtheta = theta; mrho = rho; momega = omega; mT = T; mT1 = T1; mT2 = T2; mdt = dt;
+            mvarList = varList; mdatelist = datelist; mNbLegendre = NbLegendre; minterpolMod = interpolMod;
+            mSigmaVariance = SigmaVariance; mSigmaSkew = SigmaSkew; mSigmaCurvature = SigmaCurvature; mSigmaAlpha = SigmaAlpha; mSigmaBeta = SigmaBeta;
+        }
+        public double getVol(double moneyness, double T)
+        {
+            return Bergomi2factors.Bergomi_VarianceSwapVolatility2(mk1, mk2, mtheta, mrho, momega,
+                    mvarList, mdatelist, T, moneyness, mT1, mT2, mSigmaVariance, mSigmaSkew, mSigmaCurvature, mSigmaAlpha, mSigmaBeta, mdt, mNbLegendre, minterpolMod
+                               );
+        }
+
+        public double getVol2(double moneyness, double T)
+        {
+            return Bergomi2factors.Bergomi_VarianceSwapVolatility22(mk1, mk2, mtheta, mrho, momega,
+                    mvarList, mdatelist, T, moneyness, mT1, mT2, mSigmaVariance, mSigmaSkew, mSigmaCurvature, mSigmaAlpha, mSigmaBeta, mdt, mNbLegendre, minterpolMod
+                               );
+        }
+
+    }
 
     public static class BergomiTest
     {
-             // Declaration du foncteur de modele de volatilité
-        public delegate double volatilityFunctor(double k,double T);
-        
+        // Declaration du foncteur de modele de volatilité
+        public delegate double volatilityFunctor(double k, double T);
 
-        [ExcelFunction(Description = "BlackSholes Call pricing ")]
+
         public static double Export_Call(double f, double k, double t, double v)
         {
             double option = BlackScholes.Call(f, k, t, v);
             return option;
         }
 
-        [ExcelFunction(Description = "BlackSholes Put pricing ")]
         public static double Export_Put(double f, double k, double t, double v)
         {
             double option = BlackScholes.Put(f, k, t, v);
             return option;
         }
 
-        [ExcelFunction(Description = "implicit Volatility for a vanilla pricing : type>=0 for a Call ")]
         public static double Export_BSImplicitVol(double f, double k, double t, double price, int type)
         {
-            double vol = BlackScholes.ImpliedVolatility(f,k,t,price, type);
+            double vol = BlackScholes.ImpliedVolatility(f, k, t, price, type);
             return vol;
         }
 
 
-        [ExcelFunction(Description = "Instantaneous  Covariance seen at maturity t between Ta and Tb ")]
         public static double Export_InstantaneousCovariance(
-                    double omega,double k1,double k2,double theta,double rho,double t,double Ta,double Tb)
+                    double omega, double k1, double k2, double theta, double rho, double t, double Ta, double Tb)
         {
             return Bergomi2factors.InstantaneousCovariance(omega, k1, k2, theta, rho, t, Ta, Tb);
         }
 
-        [ExcelFunction(Description = "Instantaneous  Correlation seen at maturity t between Ta and Tb ")]
-        public static double Export_ZetaCorrelation(double omega, double k1,double k2,double theta,double rho,double t,double Ta,double Tb)
+        public static double Export_ZetaCorrelation(double omega, double k1, double k2, double theta, double rho, double t, double Ta, double Tb)
         {
             return Bergomi2factors.ZetaCorrelation(omega, k1, k2, theta, rho, t, Ta, Tb);
         }
 
-        [ExcelFunction(Description = "Vecteur de variance forward brute ")]
-         public static double [] Export_VarianceSwap_RawForwardVariance(double[] varlist, double[] datelist)
+        public static double[] Export_VarianceSwap_RawForwardVariance(double[] varlist, double[] datelist)
         {
             return Bergomi2factors.VarianceSwap_RawForwardVariance(varlist, datelist);
         }
 
 
-        [ExcelFunction(Description = "Variance forward brute ")]
         public static double Export_VarianceSwap_ForwardVariance(double[] varlist, double[] datelist, double T1, double T2, int interpolMod)
         {
             double[] varlistdenormalised = new double[varlist.Length];
             for (int i = 0; i < varlist.Length; i++) varlistdenormalised[i] = varlist[i] * varlist[i] / 10000;
 
-            double var= Bergomi2factors.VarianceSwap_ForwardVariance(varlistdenormalised, datelist, T1, T2, interpolMod);
+            double var = Bergomi2factors.VarianceSwap_ForwardVariance(varlistdenormalised, datelist, T1, T2, interpolMod);
             return Math.Sqrt(var) * 100;
         }
 
 
-        [ExcelFunction(Description = "Variance Swap vol  from a short term variance swap  smile  ")]
         public static double Export_ParabolicVol_VarianceSwap(double k1, double k2, double theta, double rho, double omega,
                                double[] varlist, double[] datelist,
                                double T, double T1, double T2,
                                 int interpolmethod)
         {
             double[] varlistdenormalised = new double[varlist.Length];
-            for (int i = 0; i < varlist.Length; i++) varlistdenormalised[i] = varlist[i] * varlist[i] / 10000;           
+            for (int i = 0; i < varlist.Length; i++) varlistdenormalised[i] = varlist[i] * varlist[i] / 10000;
             double forward = Bergomi2factors.VarianceSwap_ForwardVariance(varlistdenormalised, datelist, T1, T2, interpolmethod);
             return 100 * forward;
         }
 
-         [ExcelFunction(Description = "Variance Swap vol option  from a short term variance swap  smile  ")]
-         public static double Export_ParabolicVol_VarianceSwapOption(double k1, double k2, double theta, double rho, double omega,
+        public static double Export_ParabolicVol_VarianceSwapOption(double k1, double k2, double theta, double rho, double omega,
                                 double[] varlist, double[] datelist,
                                 double T, double K, double T1, double T2,
-                                double SigmaVol, double SigmaSkew, double SigmaCurvature, double SigmaAlpha,double SigmaBeta, double dt, int NbLegendre, int VolOrOption,int optionType,
-                                 int interpolmethod )
-             // dt definit le court terme pour la construction du panier de forwardlet qui servira calculer la volatilité du swap de variance forward
-         {
-             double[] varlistdenormalised = new double[varlist.Length];
-             for (int i = 0; i < varlist.Length; i++) varlistdenormalised[i] = varlist[i] * varlist[i] / 10000;
+                                double SigmaVol, double SigmaSkew, double SigmaCurvature, double SigmaAlpha, double SigmaBeta, double dt, int NbLegendre, int VolOrOption, int optionType,
+                                 int interpolmethod)
+        // dt definit le court terme pour la construction du panier de forwardlet qui servira calculer la volatilité du swap de variance forward
+        {
+            double[] varlistdenormalised = new double[varlist.Length];
+            for (int i = 0; i < varlist.Length; i++) varlistdenormalised[i] = varlist[i] * varlist[i] / 10000;
 
-             double Kdenormalised = K / 100.0;
-             double vol= Bergomi2factors.Bergomi_VarianceSwapVolatility( k1,  k2,  theta,  rho,  omega, varlistdenormalised, datelist, T, Kdenormalised,
-                 T1, T2, SigmaVol, SigmaSkew, SigmaCurvature, SigmaAlpha,SigmaBeta, dt, NbLegendre, interpolmethod);
-             double result;
-             if(VolOrOption==0)
-             {
-                result=100.0*vol;
-             }
-             else
-             {
-                 double forward = Bergomi2factors.VarianceSwap_ForwardVariance(varlistdenormalised, datelist, T1, T2, interpolmethod);
-             
-                 if(optionType == -1)
-                 {
-                     result = 100 * BlackScholes.Put(forward, Kdenormalised, T, vol);
-                 }
-                 else
-                 {
-                     if(optionType == 1)
-                     {
-                         result = 100 * BlackScholes.Call(forward, Kdenormalised, T, vol);
-                     }
-                     else
-                     {
+            double Kdenormalised = K / 100.0;
+            double vol = Bergomi2factors.Bergomi_VarianceSwapVolatility(k1, k2, theta, rho, omega, varlistdenormalised, datelist, T, Kdenormalised,
+                T1, T2, SigmaVol, SigmaSkew, SigmaCurvature, SigmaAlpha, SigmaBeta, dt, NbLegendre, interpolmethod);
+            double result;
+            if (VolOrOption == 0)
+            {
+                result = 100.0 * vol;
+            }
+            else
+            {
+                double forward = Bergomi2factors.VarianceSwap_ForwardVariance(varlistdenormalised, datelist, T1, T2, interpolmethod);
 
-                         if (Kdenormalised >= forward)
-                             result = 100 * BlackScholes.Call(forward, Kdenormalised, T, vol);
-                         else
-                             result = 100 * BlackScholes.Put(forward, Kdenormalised, T, vol);
+                if (optionType == -1)
+                {
+                    result = 100 * BlackScholes.Put(forward, Kdenormalised, T, vol);
+                }
+                else
+                {
+                    if (optionType == 1)
+                    {
+                        result = 100 * BlackScholes.Call(forward, Kdenormalised, T, vol);
+                    }
+                    else
+                    {
 
-                     }
-                 }
-             }                       
-             return result;
-         }
+                        if (Kdenormalised >= forward)
+                            result = 100 * BlackScholes.Call(forward, Kdenormalised, T, vol);
+                        else
+                            result = 100 * BlackScholes.Put(forward, Kdenormalised, T, vol);
 
-       
-        [ExcelFunction(Description = "Volatility Swap Volatility from a variance swap volatility smile  ")]
+                    }
+                }
+            }
+            return result;
+        }
+
+
         public static double Export_ParabolicVol_VolSwap(
-                               double T1, double T2, 
+                               double T1, double T2,
                                double k1, double k2, double theta, double rho, double omega,
-                               double SigmaVol, double SigmaSkew, double SigmaCurvature, double SigmaAlpha, double SigmaBeta,double[] varlist, double[] datelist,
+                               double SigmaVol, double SigmaSkew, double SigmaCurvature, double SigmaAlpha, double SigmaBeta, double[] varlist, double[] datelist,
                                double integrationBoundUpFactor, double dt,
-                               int n,int interpolMethod)
-         // dt definit le court terme pour la construction du panier de forwardlet qui servira calculer la volatilité du swap de variance forward
-        
+                               int n, int interpolMethod)
+        // dt definit le court terme pour la construction du panier de forwardlet qui servira calculer la volatilité du swap de variance forward
+
         {
             double[] varlistdenormalised = new double[varlist.Length];
             for (int i = 0; i < varlist.Length; i++) varlistdenormalised[i] = varlist[i] * varlist[i] / 10000;
 
             double forward = Bergomi2factors.VarianceSwap_ForwardVariance(varlistdenormalised, datelist, T1, T2, interpolMethod);
-            
+
             int Ntranches = (int)Math.Floor((T2 - T1) / dt) + 1;
             double Modified_dt = (T2 - T1) / Ntranches;
             double[] forwardList = new double[Ntranches];
@@ -1543,11 +1585,10 @@ namespace BergomiTwoFactors
             ParabolicVolatlityModel model = new ParabolicVolatlityModel(SigmaVol, SigmaSkew, SigmaCurvature, SigmaAlpha, SigmaBeta);
             Bergomi2factors.volatilityFunctor ImpliedVolFunc = new Bergomi2factors.volatilityFunctor(model.getVol);
             double vol = Bergomi2factors.Bergomi_VarianceToVol(forward, k1, k2, theta, rho, omega, forwardList, ImpliedVolFunc, T1, dt, integrationBoundUpFactor, n);
-            return 100*vol;
+            return 100 * vol;
         }
 
 
-        [ExcelFunction(Description = "Simple Square root option  ")]
         public static double Export_ParabolicVol_SimpleSquareRootCall(double forward,
                             double T, double K,
                             double SigmaVariance, double SigmaSkew, double SigmaCurvature, double SigmaAlpha, double SigmaBeta,
@@ -1572,7 +1613,6 @@ namespace BergomiTwoFactors
             }
         }
 
-        [ExcelFunction(Description = "Simple Square root option  ")]
         public static double Export_ParabolicVol_SimpleSquareRootCall2(double forward,
                             double T, double K,
                             double SigmaVariance, double SigmaSkew, double SigmaCurvature, double SigmaAlpha, double SigmaBeta,
@@ -1597,29 +1637,28 @@ namespace BergomiTwoFactors
             }
         }
 
-        [ExcelFunction(Description = "Simple Square root option for the Bergomi  Variance Model  ")]
         public static double Export_Bergomi_SimpleSquareRootCall(double forward,
                             double T, double K,
                              double k1, double k2, double theta, double rho, double omega,
-                              double T1, double T2, double [] varList, double [] datelist,
-                            double SigmaVariance, double SigmaSkew, double SigmaCurvature, double SigmaAlpha,double SigmaBeta, double dt,
+                              double T1, double T2, double[] varList, double[] datelist,
+                            double SigmaVariance, double SigmaSkew, double SigmaCurvature, double SigmaAlpha, double SigmaBeta, double dt,
                             double integrationBoundUpFactor,
-                            int NbLegendre, int interpolMod,int VolOrOption)
+                            int NbLegendre, int interpolMod, int VolOrOption)
         // dt definit le court terme pour la construction du panier de forwardlet qui servira calculer la volatilité du swap de variance forward
-        
+
         {
             double forwardDenormalise = forward / 100.0;
             double Kdenormalised = K / 100.0;
             double option = Bergomi2factors.Bergomi_SquareRootCall(forwardDenormalise, T, Kdenormalised,
                               k1, k2, theta, rho, omega,
-                              T1, T2, dt, varList, datelist, 
-                              SigmaVariance, SigmaSkew, SigmaCurvature, SigmaAlpha,SigmaBeta,
+                              T1, T2, dt, varList, datelist,
+                              SigmaVariance, SigmaSkew, SigmaCurvature, SigmaAlpha, SigmaBeta,
                               integrationBoundUpFactor, NbLegendre, interpolMod);
 
             if (VolOrOption == 0)
             {
                 double vol = BlackScholes.ImpliedVolatility(forwardDenormalise, Kdenormalised, T, option, 1);
-                return 100*vol;
+                return 100 * vol;
             }
             else
             {
@@ -1629,7 +1668,6 @@ namespace BergomiTwoFactors
 
 
 
-        [ExcelFunction(Description = "Volatility Swap Volatility option avec un modele parabolique  ")]
         public static double Export_ParabolicVol_VolSwapOption(
                                double T, double T1, double T2, double K,
                                double k1, double k2, double theta, double rho, double omega,
@@ -1663,7 +1701,6 @@ namespace BergomiTwoFactors
 
         }
 
-        [ExcelFunction(Description = "Volatility Swap Volatility option avec un modele parabolique  ")]
         public static double Export_ParabolicVol_VolSwapOption2(
                                double T, double T1, double T2, double K,
                                double k1, double k2, double theta, double rho, double omega,
@@ -1697,61 +1734,57 @@ namespace BergomiTwoFactors
 
         }
 
-        
 
 
-        [ExcelFunction(Description = "Volatility Swap Volatility from a variance swap volatility smile  ")]
+
         public static double Export_BergomiVolSwapVolatility(
-                               double T,double T1,double T2, double K,
+                               double T, double T1, double T2, double K,
                                double k1, double k2, double theta, double rho, double omega,
-                               double SigmaVol, double SigmaSkew, double SigmaCurvature, double SigmaAlpha,double SigmaBeta, double[] varlist, double[] datelist,
-                               double integrationBoundUpFactor,double dt,
+                               double SigmaVol, double SigmaSkew, double SigmaCurvature, double SigmaAlpha, double SigmaBeta, double[] varlist, double[] datelist,
+                               double integrationBoundUpFactor, double dt,
                                int n, int interpolMethod)
         // dt definit le court terme pour la construction du panier de forwardlet qui servira calculer la volatilité du swap de variance forward
-        
+
         {
             double[] varlistdenormalised = new double[varlist.Length];
             for (int i = 0; i < varlist.Length; i++) varlistdenormalised[i] = varlist[i] * varlist[i] / 10000;
             double Varstrike = (K / 100.0) * (K / 100.0);
             double Varforward = Bergomi2factors.VarianceSwap_ForwardVariance(varlistdenormalised, datelist, T1, T2, interpolMethod);
             double VarMoneyness = Varstrike / Varforward;
-            double vol=Bergomi2factors.Bergomi_VolSwapVolatility(
-                              T,  T1,  T2,  VarMoneyness,
-                              k1,  k2,  theta,  rho,  omega,
-                              SigmaVol,  SigmaSkew,  SigmaCurvature,  SigmaAlpha, SigmaBeta, varlistdenormalised,  datelist,
-                              integrationBoundUpFactor,  dt,
-                              n,  interpolMethod);
-             return 100*vol;
+            double vol = Bergomi2factors.Bergomi_VolSwapVolatility(
+                              T, T1, T2, VarMoneyness,
+                              k1, k2, theta, rho, omega,
+                              SigmaVol, SigmaSkew, SigmaCurvature, SigmaAlpha, SigmaBeta, varlistdenormalised, datelist,
+                              integrationBoundUpFactor, dt,
+                              n, interpolMethod);
+            return 100 * vol;
         }
 
-        [ExcelFunction(Description = "Variance Swap Volatility input  ")]
         public static double Export_InputVarSwapVolatility(
-                               double T, double moneyness, double SigmaVol, double SigmaSkew, double SigmaCurvature, double SigmaAlpha,double SigmaBeta,
-                               double dt )
+                               double T, double moneyness, double SigmaVol, double SigmaSkew, double SigmaCurvature, double SigmaAlpha, double SigmaBeta,
+                               double dt)
         // dt definit le court terme pour la construction du panier de forwardlet qui servira calculer la volatilité du swap de variance forward
-        
+
         {
             double effectiveVarMoneyness = moneyness * moneyness;
             ParabolicVolatlityModel model = new ParabolicVolatlityModel(SigmaVol, SigmaSkew, SigmaCurvature, SigmaAlpha, SigmaBeta);
             Bergomi2factors.volatilityFunctor ImpliedVolFunc = new Bergomi2factors.volatilityFunctor(model.getVol);
-            double vol = ImpliedVolFunc(effectiveVarMoneyness, T); 
+            double vol = ImpliedVolFunc(effectiveVarMoneyness, T);
             return 100 * vol;
         }
 
-        [ExcelFunction(Description = "Variance Swap Volatility input  ")]
         public static double Export_InputVarSwapVolatility2(
                                double T, double moneyness, double SigmaVol, double SigmaSkew, double SigmaCurvature, double SigmaAlpha, double SigmaBeta,
                                double dt)
         // dt definit le court terme pour la construction du panier de forwardlet qui servira calculer la volatilité du swap de variance forward
         {
             double effectiveVarMoneyness = moneyness * moneyness;
-            ParabolicVolatlityModel model = new ParabolicVolatlityModel(SigmaVol, SigmaSkew, SigmaCurvature, SigmaAlpha, SigmaBeta,T);
+            ParabolicVolatlityModel model = new ParabolicVolatlityModel(SigmaVol, SigmaSkew, SigmaCurvature, SigmaAlpha, SigmaBeta, T);
             Bergomi2factors.volatilityFunctor ImpliedVolFunc = new Bergomi2factors.volatilityFunctor(model.getVol2);
-            double vol = ImpliedVolFunc(effectiveVarMoneyness,T);
+            double vol = ImpliedVolFunc(effectiveVarMoneyness, T);
             return 100 * vol;
         }
 
-        [ExcelFunction(Description = "Futur de VIX Like ")]
         public static double Export_VarianceSwap_VIXLike(double[] varlist, double[] datelist, double T1, double tenor, double indexSpot, double indexforward, double spread, int interpolMethod)
         {
             double[] varlistdenormalised = new double[varlist.Length];
@@ -1760,38 +1793,37 @@ namespace BergomiTwoFactors
             double x = (indexforward / indexSpot - 1.0);
 
             double sigma2 = Bergomi2factors.VarianceSwap_ForwardVariance(varlistdenormalised, datelist, T1, T1 + tenor, interpolMethod) - 1 / T1 * x * x;
-            return 100.0 * Math.Sqrt(sigma2) + spread/100.0;
+            return 100.0 * Math.Sqrt(sigma2) + spread / 100.0;
         }
 
 
-        [ExcelFunction(Description = "Option sur future de VIX like  ")]
-        public static double Export_ParabolicVol_VIXLikeOption(double[] varlist, double[] datelist,double VixForward,
+        public static double Export_ParabolicVol_VIXLikeOption(double[] varlist, double[] datelist, double VixForward,
                                double T, double K,
                                double k1, double k2, double theta, double rho, double omega,
-                               double SigmaVol, double SigmaSkew, double SigmaCurvature, double SigmaAlpha,double SigmaBeta,
+                               double SigmaVol, double SigmaSkew, double SigmaCurvature, double SigmaAlpha, double SigmaBeta,
                                double integrationBoundUpFactor, double dt,
                                int n, int VolOrOption,
-                               double tenor,int optiontype ,  int interpolMethod)
+                               double tenor, int optiontype, int interpolMethod)
         // dt definit le court terme pour la construction du panier de forwardlet qui servira calculer la volatilité du swap de variance forward
-        
+
         {
             double[] varlistdenormalised = new double[varlist.Length];
             for (int i = 0; i < varlist.Length; i++) varlistdenormalised[i] = varlist[i] * varlist[i] / 10000;
 
             double Kdenormalised = K / 100.0;
             double VixForwarddenormalised = VixForward / 100.0;
-     
+
             double option = Bergomi2factors.Bergomi_SquareRootCall(VixForwarddenormalised, T, Kdenormalised,
                               k1, k2, theta, rho, omega,
-                              T, T + tenor, dt, varlist, datelist, 
-                              SigmaVol, SigmaSkew, SigmaCurvature, SigmaAlpha,SigmaBeta,
-                              integrationBoundUpFactor, n,interpolMethod);                
-            double result=0.0;
+                              T, T + tenor, dt, varlist, datelist,
+                              SigmaVol, SigmaSkew, SigmaCurvature, SigmaAlpha, SigmaBeta,
+                              integrationBoundUpFactor, n, interpolMethod);
+            double result = 0.0;
             if (VolOrOption > 0)
-            {               
-                if (optiontype == 1) 
+            {
+                if (optiontype == 1)
                 {
-                    result =  option;
+                    result = option;
                 }
                 else if (optiontype == -1)
                 {
@@ -1810,37 +1842,34 @@ namespace BergomiTwoFactors
                         result = option;
                     }
                 }
-               
+
 
             }
             else
             {
-                result = BlackScholes.ImpliedVolatility(VixForwarddenormalised, Kdenormalised, T, option,1);
+                result = BlackScholes.ImpliedVolatility(VixForwarddenormalised, Kdenormalised, T, option, 1);
             }
             return 100 * result;
         }
 
-       
 
 
-        [ExcelFunction(Description = "Interpolation and extrapolation of forward curve ")]
-         public static double Export_ForwardInterpolation(
+        public static double Export_ForwardInterpolation(
               double[] forwardList,
-              double[] DateList,         
+              double[] DateList,
               double T,
               int methode)
-         {
-             return Bergomi2factors.ForwardInterpolation(forwardList, DateList, T, methode);
-         }
+        {
+            return Bergomi2factors.ForwardInterpolation(forwardList, DateList, T, methode);
+        }
 
-         [ExcelFunction(Description = "calcul d'un forward entre deux dates ")]
-         public static double Export_ForwardIntegration(double[] forwardlist, double[] datelist, double T1,double T2, double pas_des_forwards,  int NbLegendre)
-         {
-             return Bergomi2factors.ForwardIntegration( forwardlist,  datelist,  T1, T2, pas_des_forwards,  NbLegendre);
-         }
-       
+        public static double Export_ForwardIntegration(double[] forwardlist, double[] datelist, double T1, double T2, double pas_des_forwards, int NbLegendre)
+        {
+            return Bergomi2factors.ForwardIntegration(forwardlist, datelist, T1, T2, pas_des_forwards, NbLegendre);
+        }
 
-        
+
+
     }
 
     public class BlackScholes
@@ -2105,6 +2134,29 @@ namespace BergomiTwoFactors
             return invsqrt2pi * Math.Exp(-0.5 * arg * arg);
         }
     }
+
+    public class CGaussLegendre
+    {
+        public double[] X;
+        public double[] W;
+
+        public CGaussLegendre(int n)
+        {
+            X = new double[n];
+            W = new double[n];
+            if (n == 15)
+            {
+                X = new double[] { 0.9856526113854128, 0.9491079123427585, 0.8979317540417933, 0.832938855494208, 0.7554044083556733, 0.6672320481395893, 0.5701831454519989, 0.46574972880093846, 0.355152376176378, 0.23931433580556223, 0.11974125740411306, 0.0 };
+                W = new double[] { 0.03075324483756353, 0.0703660474810813, 0.10715922046718423, 0.1395706779430635, 0.16626920581699912, 0.1861610000155622, 0.1984314781474135, 0.20257850882737666, 0.1984314781474135, 0.1861610000155622, 0.16626920581699912, 0.1395706779430635, 0.10715922046718423, 0.0703660474810813, 0.03075324483756353 };
+            }
+            else if (n > 0)
+            {
+                X = new double[n];
+                W = new double[n];
+                // Implementation for general n can be added here
+            }
+        }
+    }
  
     public class Bergomi2factors
     {
@@ -2154,20 +2206,20 @@ namespace BergomiTwoFactors
            volatilityFunctor ImpliedVolFunc, double T, double T1, double T2, double strike, int NbForwardlet, int NbLegendre)
         {
             double dt = (T2 - T1) / NbForwardlet;
-            double [] dateList2 = new double[NbForwardlet];
-            for(int i=0;i<NbForwardlet;i++) dateList2[i]=T1+dt*(T2-T1);
-            double [] forwardList2=new double[NbForwardlet];
+            double[] dateList2 = new double[NbForwardlet];
+            for (int i = 0; i < NbForwardlet; i++) dateList2[i] = T1 + dt * (T2 - T1);
+            double[] forwardList2 = new double[NbForwardlet];
             for (int i = 0; i < NbForwardlet; i++) forwardList2[i] = ForwardIntegration(forwardList, dateList, T1 + i * dt, T1 + dt + i * dt, dt, NbLegendre);
-            double forward=0.0;for(int i=0;i<NbForwardlet;i++) forward +=forwardList2[i];
-            double relativebasketStrike=strike/forward-1.0;
-            return BasketVolatility(k1, k2, theta, rho, omega, forwardList2,ImpliedVolFunc, T, T1, dt, relativebasketStrike);
+            double forward = 0.0; for (int i = 0; i < NbForwardlet; i++) forward += forwardList2[i];
+            double relativebasketStrike = strike / forward - 1.0;
+            return BasketVolatility(k1, k2, theta, rho, omega, forwardList2, ImpliedVolFunc, T, T1, dt, relativebasketStrike);
         }
 
         public static double BasketVolatility(double k1, double k2, double theta, double rho, double omega, double[] forwardList,
             volatilityFunctor ImpliedVolFunc, double T, double T1, double dt, double relativebasketStrike)
         {
             int n = forwardList.Length;
-            double [] VarianceLetDates; // 
+            double[] VarianceLetDates; // 
             VarianceLetDates = new double[n];  // 
             for (int i = 0; i < n; i++) VarianceLetDates[i] = T1 + i * dt;
             double[,] corrMatrix;
@@ -2175,7 +2227,7 @@ namespace BergomiTwoFactors
             for (int i = 0; i < n; i++)
                 for (int j = 0; j < n; j++)
                 {
-                    corrMatrix[i,j]=ZetaCorrelation(omega,k1,k2,theta,rho,T,VarianceLetDates[i],VarianceLetDates[j]);
+                    corrMatrix[i, j] = ZetaCorrelation(omega, k1, k2, theta, rho, T, VarianceLetDates[i], VarianceLetDates[j]);
                 }
             double B = 0.0;
             for (int i = 0; i < n; i++) B += forwardList[i]; B /= n;
@@ -2183,44 +2235,44 @@ namespace BergomiTwoFactors
             for (int i = 0; i < n; i++) spreadList[i] = (relativebasketStrike - 1.0);
             double[] RawsigmaiList; double[] sigmaiList;
             sigmaiList = new double[n]; RawsigmaiList = new double[n];
-            for (int i = 0; i < n; i++) RawsigmaiList[i] = ImpliedVolFunc(1.0 + spreadList[i], T) ;
+            for (int i = 0; i < n; i++) RawsigmaiList[i] = ImpliedVolFunc(1.0 + spreadList[i], T);
             for (int i = 0; i < n; i++) sigmaiList[i] = RawsigmaiList[i] * forwardList[i];
             double sigmaB = 0.0;
-             for (int i = 0; i < n; i++)
-                 for (int j = 0; j < n; j++)
-                 {
-                     sigmaB += corrMatrix[i, j] * sigmaiList[i] * sigmaiList[j];
-                 }
-             double Bn = B * n;
-             sigmaB = Math.Sqrt(sigmaB) / Bn;
-            
-             double[] pi = new double[n]; 
-             for (int i = 0; i < n; i++) pi[i] =forwardList[i]/ Bn;
-             for (int i = 0; i < n; i++)
-             {
+            for (int i = 0; i < n; i++)
+                for (int j = 0; j < n; j++)
+                {
+                    sigmaB += corrMatrix[i, j] * sigmaiList[i] * sigmaiList[j];
+                }
+            double Bn = B * n;
+            sigmaB = Math.Sqrt(sigmaB) / Bn;
 
-                 spreadList[i] = sigmaiList[i] / (sigmaB * B) * (relativebasketStrike - 1.0);
-                 double sum=0.0;
-                 for (int j = 0; j < n; j++)
-                     sum += corrMatrix[i, j] * pi[j] * sigmaiList[j] / (sigmaB* B);
-                 spreadList[i] *= sum;
-             }
-             for (int i = 0; i < n; i++) RawsigmaiList[i] = ImpliedVolFunc(1.0 + spreadList[i], T);
-             for (int i = 0; i < n; i++) sigmaiList[i] = RawsigmaiList[i] * forwardList[i];
-             sigmaB = 0.0;
-             for (int i = 0; i < n; i++)
-                 for (int j = 0; j < n; j++)
-                 {
-                     sigmaB += corrMatrix[i, j] * sigmaiList[i] * sigmaiList[j];
-                 }
-             sigmaB = Math.Sqrt(sigmaB) / (B * n);
-             return sigmaB;
+            double[] pi = new double[n];
+            for (int i = 0; i < n; i++) pi[i] = forwardList[i] / Bn;
+            for (int i = 0; i < n; i++)
+            {
+
+                spreadList[i] = sigmaiList[i] / (sigmaB * B) * (relativebasketStrike - 1.0);
+                double sum = 0.0;
+                for (int j = 0; j < n; j++)
+                    sum += corrMatrix[i, j] * pi[j] * sigmaiList[j] / (sigmaB * B);
+                spreadList[i] *= sum;
+            }
+            for (int i = 0; i < n; i++) RawsigmaiList[i] = ImpliedVolFunc(1.0 + spreadList[i], T);
+            for (int i = 0; i < n; i++) sigmaiList[i] = RawsigmaiList[i] * forwardList[i];
+            sigmaB = 0.0;
+            for (int i = 0; i < n; i++)
+                for (int j = 0; j < n; j++)
+                {
+                    sigmaB += corrMatrix[i, j] * sigmaiList[i] * sigmaiList[j];
+                }
+            sigmaB = Math.Sqrt(sigmaB) / (B * n);
+            return sigmaB;
         }
 
-      
+
         public static double ParabolicVol_VarianceToVol(double Varforward,
                                double T,
-                               double SigmaVariance, double SigmaSkew, double SigmaCurvature,double SigmaAlpha,double SigmaBeta,
+                               double SigmaVariance, double SigmaSkew, double SigmaCurvature, double SigmaAlpha, double SigmaBeta,
                                double integrationBoundUpFactor,
                                int n)
         {
@@ -2257,8 +2309,8 @@ namespace BergomiTwoFactors
             double[] KputVols = new double[n];
             for (int i = 0; i < n; i++)
             {
-                KputVols[i] = VarianceVarVolFunc(Kput[i] / forward,T);
-            }          
+                KputVols[i] = VarianceVarVolFunc(Kput[i] / forward, T);
+            }
 
             double[] Kcall = new double[n];
             for (int i = 0; i < n; i++)
@@ -2269,32 +2321,32 @@ namespace BergomiTwoFactors
             double[] KcallVols = new double[n];
             for (int i = 0; i < n; i++)
             {
-                KcallVols[i] = VarianceVarVolFunc(Kcall[i] / forward,T);
-            }   
+                KcallVols[i] = VarianceVarVolFunc(Kcall[i] / forward, T);
+            }
 
             double result = Math.Sqrt(forward);
             double result1 = 0.0; double result2 = 0.0;
 
-            
-                for (int i = 0; i < n; i++)
-                {
-                    result1 -= forward * gl.W[i] * BlackScholes.Put(forward, Kput[i], T, KputVols[i]) / (4.0 * Math.Pow(Kput[i], 1.5));
-                    result2 -= forward * (integrationBoundUpFactor - 1.0) * gl.W[i] * BlackScholes.Call(forward, Kcall[i], T, KcallVols[i]) / (4.0 * Math.Pow(Kcall[i], 1.5));
-                }
+
+            for (int i = 0; i < n; i++)
+            {
+                result1 -= forward * gl.W[i] * BlackScholes.Put(forward, Kput[i], T, KputVols[i]) / (4.0 * Math.Pow(Kput[i], 1.5));
+                result2 -= forward * (integrationBoundUpFactor - 1.0) * gl.W[i] * BlackScholes.Call(forward, Kcall[i], T, KcallVols[i]) / (4.0 * Math.Pow(Kcall[i], 1.5));
+            }
             return result + result1 + result2;
 
         }
 
-       
+
         public static double ParabolicVol_FromVarianceToVolCall(double forward,
-                              double T,double K,
-                              double SigmaVariance, double SigmaSkew, double SigmaCurvature,double SigmaAlpha,double SigmaBeta,
+                              double T, double K,
+                              double SigmaVariance, double SigmaSkew, double SigmaCurvature, double SigmaAlpha, double SigmaBeta,
                               double integrationBoundUpFactor,
                               int n)
         {
             ParabolicVolatlityModel model = new ParabolicVolatlityModel(SigmaVariance, SigmaSkew, SigmaCurvature, SigmaAlpha, SigmaBeta);
             volatilityFunctor ImpliedVolFunc = new volatilityFunctor(model.getVol);
-            return GenericVol_SquareRootCall(ImpliedVolFunc, forward, T,K, integrationBoundUpFactor, n);
+            return GenericVol_SquareRootCall(ImpliedVolFunc, forward, T, K, integrationBoundUpFactor, n);
         }
 
         public static double BergomiVol_VolatilitySwapVol(double forward,
@@ -2313,7 +2365,7 @@ namespace BergomiTwoFactors
         public static double BergomiVol_VarSquareRootCall(double forward,
                              double T, double K,
                              double k1, double k2, double theta, double rho, double omega, double[] forwardList,
-                             volatilityFunctor ImpliedVolFunc,double T1, double dt,
+                             volatilityFunctor ImpliedVolFunc, double T1, double dt,
                              double integrationBoundUpFactor,
                              int n)
         {
@@ -2389,7 +2441,7 @@ namespace BergomiTwoFactors
 
 
         public static double GenericVol_SquareRootCall(volatilityFunctor ImpliedVolFunc, double forward,
-                              double T,double K,
+                              double T, double K,
                               double integrationBoundUpFactor,
                               int n)
         {
@@ -2399,22 +2451,22 @@ namespace BergomiTwoFactors
             double result1 = 0.0; double result2 = 0.0; double result0;
             double[] Kput = new double[n]; double[] KputVols = new double[n]; double[] Kcall = new double[n]; double[] KcallVols = new double[n];
             double[] KcallOptions = new double[n]; double[] KputOptions = new double[n];
-            double volAtKsquared = ImpliedVolFunc(Ksquared / forward,T);
+            double volAtKsquared = ImpliedVolFunc(Ksquared / forward, T);
             if (Ksquared < forward)
             {
-               
+
                 result0 = BlackScholes.Put(forward, Ksquared, T, volAtKsquared) / (2.0 * K);
-             
+
                 for (int i = 0; i < n; i++)
                 {
                     Kput[i] = Ksquared + gl.X[i] * (forward - Ksquared);
-                    KputVols[i] = ImpliedVolFunc(Kput[i] / forward,T);
+                    KputVols[i] = ImpliedVolFunc(Kput[i] / forward, T);
                     KputOptions[i] = BlackScholes.Put(forward, Kput[i], T, KputVols[i]);
                 }
                 for (int i = 0; i < n; i++)
                 {
                     Kcall[i] = forward + gl.X[i] * forward * (integrationBoundUpFactor - 1.0);
-                    KcallVols[i] = ImpliedVolFunc(Kcall[i] / forward,T);
+                    KcallVols[i] = ImpliedVolFunc(Kcall[i] / forward, T);
                     KcallOptions[i] = BlackScholes.Call(forward, Kcall[i], T, KcallVols[i]);
                 }
 
@@ -2426,67 +2478,67 @@ namespace BergomiTwoFactors
             }
             else
             {
-           
+
                 result0 = BlackScholes.Call(forward, Ksquared, T, volAtKsquared) / (2.0 * K);
-               
+
                 for (int i = 0; i < n; i++)
                 {
                     Kcall[i] = Ksquared + gl.X[i] * (forward * integrationBoundUpFactor - Ksquared);
-                    KcallVols[i] = ImpliedVolFunc(Kcall[i] / forward,T);
+                    KcallVols[i] = ImpliedVolFunc(Kcall[i] / forward, T);
                     KcallOptions[i] = BlackScholes.Call(forward, Kcall[i], T, KcallVols[i]);
                 }
                 for (int i = 0; i < n; i++)
                 {
-                     result2 -= (forward * integrationBoundUpFactor - Ksquared) * gl.W[i] * BlackScholes.Call(forward, Kcall[i], T, KcallVols[i]) / (4.0 * Math.Pow(Kcall[i], 1.5));
+                    result2 -= (forward * integrationBoundUpFactor - Ksquared) * gl.W[i] * BlackScholes.Call(forward, Kcall[i], T, KcallVols[i]) / (4.0 * Math.Pow(Kcall[i], 1.5));
                 }
             }
             return result + result0 + result1 + result2;
 
-        }   
+        }
 
-        public static double ForwardInterpolation(double [] forwardlist, double [] datelist, double T, int method)
-            {
-                Interpolation.InterpolationType interType = Interpolation.InterpolationType.E_Spline;
-                if (method == 0) interType = Interpolation.InterpolationType.E_Spline;
-                if (method == 1) interType = Interpolation.InterpolationType.E_Linear;
-                if (method == 2) interType = Interpolation.InterpolationType.E_LinearC;
-                if (method == 3) interType = Interpolation.InterpolationType.E_SplineC;
-                if (method == 4) interType = Interpolation.InterpolationType.E_SplineL;
-                if (method == 5) interType = Interpolation.InterpolationType.E_SplineSqrLog;
-                if (method == 6) interType = Interpolation.InterpolationType.E_SplineSqrLogC;
-                if (method == 7) interType = Interpolation.InterpolationType.E_SplineVol;
-                if (method == 8) interType = Interpolation.InterpolationType.E_Constant;
-                              
-                Interpolation.InterpolationStructure inter = new Interpolation.InterpolationStructure(datelist, forwardlist, interType);
-                double f = inter.getY(T);
-                return f;
-          
-            }
+        public static double ForwardInterpolation(double[] forwardlist, double[] datelist, double T, int method)
+        {
+            Interpolation.InterpolationType interType = Interpolation.InterpolationType.E_Spline;
+            if (method == 0) interType = Interpolation.InterpolationType.E_Spline;
+            if (method == 1) interType = Interpolation.InterpolationType.E_Linear;
+            if (method == 2) interType = Interpolation.InterpolationType.E_LinearC;
+            if (method == 3) interType = Interpolation.InterpolationType.E_SplineC;
+            if (method == 4) interType = Interpolation.InterpolationType.E_SplineL;
+            if (method == 5) interType = Interpolation.InterpolationType.E_SplineSqrLog;
+            if (method == 6) interType = Interpolation.InterpolationType.E_SplineSqrLogC;
+            if (method == 7) interType = Interpolation.InterpolationType.E_SplineVol;
+            if (method == 8) interType = Interpolation.InterpolationType.E_Constant;
 
-        public static double ForwardIntegration(double[] forwardlist, double[] datelist, double T1,double T2, double pas_des_forward, int NbLegendre)
+            Interpolation.InterpolationStructure inter = new Interpolation.InterpolationStructure(datelist, forwardlist, interType);
+            double f = inter.getY(T);
+            return f;
+
+        }
+
+        public static double ForwardIntegration(double[] forwardlist, double[] datelist, double T1, double T2, double pas_des_forward, int NbLegendre)
         {
             CGaussLegendre gl = new CGaussLegendre(NbLegendre);
             double[] t = new double[NbLegendre];
             for (int i = 0; i < NbLegendre; i++)
             {
                 t[i] = T1 + gl.X[i] * (T2 - T1);
-            }          
-            double[] f;           
+            }
+            double[] f;
             Interpolation.InterpolationType interType = Interpolation.InterpolationType.E_Spline;
             Interpolation.InterpolationStructure inter = new Interpolation.InterpolationStructure(datelist, forwardlist, interType);
             f = inter.getY(t);
-            double result=0;
+            double result = 0;
             for (int i = 0; i < NbLegendre; i++)
             {
                 result += (T2 - T1) * gl.W[i] * f[i];
             }
             return result / pas_des_forward;
-        }      
+        }
 
-        public static double [] VarianceSwap_RawForwardVariance(double[] varlist, double[] datelist)
+        public static double[] VarianceSwap_RawForwardVariance(double[] varlist, double[] datelist)
         {
             int Nbdata = varlist.Length;
-            double [] rawvariance=new double[Nbdata];
+            double[] rawvariance = new double[Nbdata];
             rawvariance[0] = varlist[0] * varlist[0] * datelist[0];
             for (int i = 1; i < Nbdata; i++)
             {
@@ -2514,36 +2566,36 @@ namespace BergomiTwoFactors
             if (interolMod == 6) interType = Interpolation.InterpolationType.E_SplineSqrLogC;
             if (interolMod == 7) interType = Interpolation.InterpolationType.E_SplineVol;
             if (interolMod == 8) interType = Interpolation.InterpolationType.E_Constant;
-                                     
-            double[] Tboundary = new double[2]; double[] Vboundary = new double[2]; Tboundary[0] = T1; Tboundary[1] = T2;      
+
+            double[] Tboundary = new double[2]; double[] Vboundary = new double[2]; Tboundary[0] = T1; Tboundary[1] = T2;
             Interpolation.InterpolationStructure inter = new Interpolation.InterpolationStructure(datelist, rawvariance, interType);
             Vboundary = inter.getY(Tboundary);
             // la convention etant de parler en annualisé , le framework etant lineaire en temps , on normalise:
-            return (Vboundary[1] - Vboundary[0])/(T2-T1);
+            return (Vboundary[1] - Vboundary[0]) / (T2 - T1);
 
         }
-        
+
 
         public static double Bergomi_VarianceSwapVolatility(double k1, double k2, double theta, double rho, double omega,
                                 double[] varList, double[] datelist,
-                                double T,double K, double T1, double T2,
-                                double SigmaVariance, double SigmaSkew, double SigmaCurvature,double SigmaAlpha,double SigmaBeta, double dt,int NbLegendre,int interpolMod
+                                double T, double K, double T1, double T2,
+                                double SigmaVariance, double SigmaSkew, double SigmaCurvature, double SigmaAlpha, double SigmaBeta, double dt, int NbLegendre, int interpolMod
                                 )
         {
             // K est suppose normalisé (typiquement 0.22)
             ParabolicVolatlityModel model = new ParabolicVolatlityModel(SigmaVariance, SigmaSkew, SigmaCurvature, SigmaAlpha, SigmaBeta);
             volatilityFunctor ImpliedVolFunc = new volatilityFunctor(model.getVol);
             double forward = VarianceSwap_ForwardVariance(varList, datelist, T1, T2, interpolMod);
-            double relativebasketStrike = K / forward-1.0;
-            int Ntranches = Math.Min(20,(int)Math.Floor((T2 - T1) / dt) + 1);
-            double Modified_dt=(T2-T1)/Ntranches;
-            double[] forwardList =  new double[Ntranches];
+            double relativebasketStrike = K / forward - 1.0;
+            int Ntranches = Math.Min(20, (int)Math.Floor((T2 - T1) / dt) + 1);
+            double Modified_dt = (T2 - T1) / Ntranches;
+            double[] forwardList = new double[Ntranches];
             for (int i = 0; i < Ntranches; i++)
             {
                 forwardList[i] = VarianceSwap_ForwardVariance(varList, datelist, T1 + i * Modified_dt, T1 + (i + 1) * Modified_dt, interpolMod) * Modified_dt;
             }
-            double vol= BasketVolatility(k1, k2, theta, rho, omega, forwardList,ImpliedVolFunc, T, T1, Modified_dt, relativebasketStrike);
-            return vol ;
+            double vol = BasketVolatility(k1, k2, theta, rho, omega, forwardList, ImpliedVolFunc, T, T1, Modified_dt, relativebasketStrike);
+            return vol;
         }
 
         public static double Bergomi_VarianceSwapVolatility2(double k1, double k2, double theta, double rho, double omega,
@@ -2571,7 +2623,7 @@ namespace BergomiTwoFactors
                                 double SigmaVariance, double SigmaSkew, double SigmaCurvature, double SigmaAlpha, double SigmaBeta, double dt, int NbLegendre, int interpolMod
                                 )
         {
-            ParabolicVolatlityModel model = new ParabolicVolatlityModel(SigmaVariance, SigmaSkew, SigmaCurvature, SigmaAlpha, SigmaBeta,T);
+            ParabolicVolatlityModel model = new ParabolicVolatlityModel(SigmaVariance, SigmaSkew, SigmaCurvature, SigmaAlpha, SigmaBeta, T);
             volatilityFunctor ImpliedVolFunc = new volatilityFunctor(model.getVol2);
             int Ntranches = Math.Min(20, (int)Math.Floor((T2 - T1) / dt) + 1);
             double Modified_dt = (T2 - T1) / Ntranches;
@@ -2587,10 +2639,10 @@ namespace BergomiTwoFactors
         public static double Bergomi_VarianceSwapOption(double k1, double k2, double theta, double rho, double omega,
                                 double[] varList, double[] datelist,
                                 double T, double K, double T1, double T2,
-                                double SigmaVariance, double SigmaSkew, double SigmaCurvature, double SigmaAlpha,double SigmaBeta, double dt, int NbLegendre, int VolOrOption, int optiontype, int interpolMod
+                                double SigmaVariance, double SigmaSkew, double SigmaCurvature, double SigmaAlpha, double SigmaBeta, double dt, int NbLegendre, int VolOrOption, int optiontype, int interpolMod
                                 )
         {
-            ParabolicVolatlityModel model = new ParabolicVolatlityModel(SigmaVariance, SigmaSkew, SigmaCurvature, SigmaAlpha,SigmaBeta);
+            ParabolicVolatlityModel model = new ParabolicVolatlityModel(SigmaVariance, SigmaSkew, SigmaCurvature, SigmaAlpha, SigmaBeta);
             volatilityFunctor ImpliedVolFunc = new volatilityFunctor(model.getVol);
             double forward = VarianceSwap_ForwardVariance(varList, datelist, T1, T2, interpolMod);
             double relativebasketStrike = K / forward;
@@ -2605,7 +2657,7 @@ namespace BergomiTwoFactors
             double result;
             if (VolOrOption > 0)
             {
-                
+
                 if (optiontype == -1)
                 {
                     result = BlackScholes.Put(forward, K, T, vol);
@@ -2630,95 +2682,95 @@ namespace BergomiTwoFactors
                 }
             }
             else
-            {    
+            {
                 result = vol;
             }
             return result;
-        }      
-         
+        }
+
         public static double Bergomi_VolSwapOption(
-                               double T,double T1,double T2, double K,
+                               double T, double T1, double T2, double K,
                                double k1, double k2, double theta, double rho, double omega,
-                               double SigmaVol, double SigmaSkew, double SigmaCurvature, double SigmaAlpha,double SigmaBeta, double[] volList, double[] datelist,
-                               double integrationBoundUpFactor,double dt,
+                               double SigmaVol, double SigmaSkew, double SigmaCurvature, double SigmaAlpha, double SigmaBeta, double[] volList, double[] datelist,
+                               double integrationBoundUpFactor, double dt,
                                int n, int VolOrOption, int optiontype, int interpolMethod
                                 )
-                {
-                    double Varforward = Bergomi2factors.VarianceSwap_ForwardVariance(volList, datelist, T1, T2, interpolMethod);
-                    ParabolicVolatlityModel model = new ParabolicVolatlityModel(SigmaVol, SigmaSkew, SigmaCurvature, SigmaAlpha,SigmaBeta);
-                    Bergomi2factors.volatilityFunctor ImpliedVolFunc = new Bergomi2factors.volatilityFunctor(model.getVol);
-     //               int Ntranches = (int)Math.Floor((T2 - T1) / dt) + 1;
-                    int Ntranches = 15;
-                    double Modified_dt = (T2 - T1) / Ntranches;
-                    double[] forwardList = new double[Ntranches];
-                    for (int i = 0; i < Ntranches; i++)
-                    {
-                        forwardList[i] = Bergomi2factors.VarianceSwap_ForwardVariance(volList, datelist, T1 + i * Modified_dt, T1 + (i + 1) * Modified_dt, interpolMethod) * Modified_dt;
-                    }
-                    double equivalentKvol = K * (T2 - T1);
-                    double volforward = Math.Sqrt(Varforward) * (T2 - T1);
-
-                    double relativebasketStrike = equivalentKvol / volforward - 1.0;
-                    double option = Bergomi2factors.BergomiVol_VarSquareRootCall(Varforward, T, K,k1,k2,theta,rho,omega,forwardList, ImpliedVolFunc,T1,dt, integrationBoundUpFactor, n);
-                    double result;
-                    if (VolOrOption > 0)
-                    {
-                        if (optiontype == -1)
-                        {
-                            result =  (option - (volforward - equivalentKvol));
-                        }
-                        else
-                        {
-                            if (optiontype == 1)
-                         {
-                             result =  option;
-                            }
-                         else               
-                            {
-                                if (equivalentKvol > volforward)
-                                {
-                                  result =  option;
-                                 }
-                                else
-                                 {
-                                     result =  (option - (volforward - equivalentKvol));
-                                }
-                             }
-                        }
-                    }
-                    else
-                    {
-                        double reducedK = 100*equivalentKvol / volforward;
-                        double reducedOpt = 100*option / volforward;
-                        result = BlackScholes.ImpliedVolatility(100, reducedK, T, reducedOpt, 1);
-                    }
-                    return result;
-                }
-
-
-        public static double Bergomi_VolSwapVolatility(
-                             double T, double T1, double T2, double VarMoneyness,
-                             double k1, double k2, double theta, double rho, double omega,
-                             double SigmaVol, double SigmaSkew, double SigmaCurvature, double SigmaAlpha,double SigmaBeta, double[] volList, double[] datelist,
-                             double integrationBoundUpFactor, double dt,
-                             int n, int interpolMethod
-                              )
         {
-            ParabolicVolatlityModel model = new ParabolicVolatlityModel(SigmaVol, SigmaSkew, SigmaCurvature, SigmaAlpha,SigmaBeta);
+            double Varforward = Bergomi2factors.VarianceSwap_ForwardVariance(volList, datelist, T1, T2, interpolMethod);
+            ParabolicVolatlityModel model = new ParabolicVolatlityModel(SigmaVol, SigmaSkew, SigmaCurvature, SigmaAlpha, SigmaBeta);
             Bergomi2factors.volatilityFunctor ImpliedVolFunc = new Bergomi2factors.volatilityFunctor(model.getVol);
-            int Ntranches =Math.Min(20, (int)Math.Floor((T2 - T1) / dt) + 1);           
+            // int Ntranches = (int)Math.Floor((T2 - T1) / dt) + 1;
+            int Ntranches = 15;
             double Modified_dt = (T2 - T1) / Ntranches;
             double[] forwardList = new double[Ntranches];
             for (int i = 0; i < Ntranches; i++)
             {
                 forwardList[i] = Bergomi2factors.VarianceSwap_ForwardVariance(volList, datelist, T1 + i * Modified_dt, T1 + (i + 1) * Modified_dt, interpolMethod) * Modified_dt;
-            }                     
-            BergomiVolatilityModel model2 = new BergomiVolatilityModel(k1, k2, theta, rho, omega, T, T1, dt, forwardList, ImpliedVolFunc);
-            volatilityFunctor ImpliedVolFunc2 = new volatilityFunctor(model2.getVol);
-            double result = ImpliedVolFunc2(VarMoneyness, T);           
+            }
+            double equivalentKvol = K * (T2 - T1);
+            double volforward = Math.Sqrt(Varforward) * (T2 - T1);
+
+            double relativebasketStrike = equivalentKvol / volforward - 1.0;
+            double option = Bergomi2factors.BergomiVol_VarSquareRootCall(Varforward, T, K, k1, k2, theta, rho, omega, forwardList, ImpliedVolFunc, T1, dt, integrationBoundUpFactor, n);
+            double result;
+            if (VolOrOption > 0)
+            {
+                if (optiontype == -1)
+                {
+                    result = (option - (volforward - equivalentKvol));
+                }
+                else
+                {
+                    if (optiontype == 1)
+                    {
+                        result = option;
+                    }
+                    else
+                    {
+                        if (equivalentKvol > volforward)
+                        {
+                            result = option;
+                        }
+                        else
+                        {
+                            result = (option - (volforward - equivalentKvol));
+                        }
+                    }
+                }
+            }
+            else
+            {
+                double reducedK = 100 * equivalentKvol / volforward;
+                double reducedOpt = 100 * option / volforward;
+                result = BlackScholes.ImpliedVolatility(100, reducedK, T, reducedOpt, 1);
+            }
             return result;
         }
-        
+
+
+        public static double Bergomi_VolSwapVolatility(
+                             double T, double T1, double T2, double VarMoneyness,
+                             double k1, double k2, double theta, double rho, double omega,
+                             double SigmaVol, double SigmaSkew, double SigmaCurvature, double SigmaAlpha, double SigmaBeta, double[] volList, double[] datelist,
+                             double integrationBoundUpFactor, double dt,
+                             int n, int interpolMethod
+                              )
+        {
+            ParabolicVolatlityModel model = new ParabolicVolatlityModel(SigmaVol, SigmaSkew, SigmaCurvature, SigmaAlpha, SigmaBeta);
+            Bergomi2factors.volatilityFunctor ImpliedVolFunc = new Bergomi2factors.volatilityFunctor(model.getVol);
+            int Ntranches = Math.Min(20, (int)Math.Floor((T2 - T1) / dt) + 1);
+            double Modified_dt = (T2 - T1) / Ntranches;
+            double[] forwardList = new double[Ntranches];
+            for (int i = 0; i < Ntranches; i++)
+            {
+                forwardList[i] = Bergomi2factors.VarianceSwap_ForwardVariance(volList, datelist, T1 + i * Modified_dt, T1 + (i + 1) * Modified_dt, interpolMethod) * Modified_dt;
+            }
+            BergomiVolatilityModel model2 = new BergomiVolatilityModel(k1, k2, theta, rho, omega, T, T1, dt, forwardList, ImpliedVolFunc);
+            volatilityFunctor ImpliedVolFunc2 = new volatilityFunctor(model2.getVol);
+            double result = ImpliedVolFunc2(VarMoneyness, T);
+            return result;
+        }
+
     }
 
 }
