@@ -24,15 +24,15 @@ Le **modèle de Bergomi** est un modèle de volatilité stochastique non-markovi
 la dynamique du smile implicite et de capturer la structure de dépendance de la variance à travers le temps.
 
 Dans sa version à deux facteurs, il modélise la variance forward comme :
-\[
+$$\[
 \xi_t(T) = \xi_0(T) \cdot \exp\left( 
 "
 \sum_{i=1}^2 \omega_i X_t^{(i)} - \frac{1}{2} \omega_i^2 v_i(t,T) \right)
-\]
+\]$$
 avec :
-- \( X_t^{(i)} \) : processus gaussiens corrélés,
-- \( \omega_i \) : pondérations des facteurs,
-- \( v_i(t,T) \) : volatilité instantanée des facteurs.
+- $$\( X_t^{(i)} \)$$ : processus gaussiens corrélés,
+- $$\( \omega_i \)$$ : pondérations des facteurs,
+- $$\( v_i(t,T) \)$$ : volatilité instantanée des facteurs.
 
 ## 4. Application aux variance swaps et volatility swaps
 
