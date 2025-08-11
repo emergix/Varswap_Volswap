@@ -24,15 +24,14 @@ Le **modèle de Bergomi** est un modèle de volatilité stochastique non-markovi
 la dynamique du smile implicite et de capturer la structure de dépendance de la variance à travers le temps.
 
 Dans sa version à deux facteurs, il modélise la variance forward comme :
-$$\[
-\xi_t(T) = \xi_0(T) \cdot \exp\left( 
+
+$$\xi_t(T) = \xi_0(T) \cdot \exp\left( 
 "
-\sum_{i=1}^2 \omega_i X_t^{(i)} - \frac{1}{2} \omega_i^2 v_i(t,T) \right)
-\]$$
+\sum_{i=1}^2 \omega_i X_t^{(i)} - \frac{1}{2} \omega_i^2 v_i(t,T) \right)$$
 avec :
-- $$\( X_t^{(i)} \)$$ : processus gaussiens corrélés,
-- $$\( \omega_i \)$$ : pondérations des facteurs,
-- $$\( v_i(t,T) \)$$ : volatilité instantanée des facteurs.
+- $$ X_t^{(i)} $$ : processus gaussiens corrélés,
+- $$ \omega_i $$ : pondérations des facteurs,
+- $$ v_i(t,T) $$ : volatilité instantanée des facteurs.
 
 ## 4. Application aux variance swaps et volatility swaps
 
@@ -61,7 +60,7 @@ où :
 ---
 
 
-1. Structure générale
+## 1. Structure générale
 
     Espaces de noms :
 
@@ -71,8 +70,8 @@ où :
 
         BergomiTest : Fournit les fonctions exportables vers Excel via Excel-DNA.
 
-2. Composants clés du modèle de Bergomi
-a) Modèle de volatilité parabolique (ParabolicVolatlityModel)
+## 2. Composants clés du modèle de Bergomi
+# a) Modèle de volatilité parabolique (ParabolicVolatlityModel)
 
     Objectif : Modéliser la surface de volatilité locale.
 
@@ -92,7 +91,7 @@ a) Modèle de volatilité parabolique (ParabolicVolatlityModel)
 
         ComputeTurningMoneyness() : Trouve le point où le smile change de comportement.
 
-b) Modèle de Bergomi (BergomiVolatilityModel)
+# b) Modèle de Bergomi (BergomiVolatilityModel)
 
     Paramètres du modèle :
 
@@ -108,8 +107,8 @@ b) Modèle de Bergomi (BergomiVolatilityModel)
 
         getVol() : Calcule la volatilité implicite via BasketVolatility().
 
-3. Calculs financiers
-a) Swaps de variance
+## 3. Calculs financiers
+# a) Swaps de variance
 
     Fonctions clés :
 
@@ -119,7 +118,7 @@ a) Swaps de variance
 
         Export_ParabolicVol_VarianceSwapOption() : Fonction Excel pour pricer une option sur swap de variance.
 
-b) Swaps de volatilité
+# b) Swaps de volatilité
 
     Fonctions clés :
 
@@ -127,7 +126,7 @@ b) Swaps de volatilité
 
         Export_ParabolicVol_VolSwapOption() : Fonction Excel pour pricer une option sur swap de volatilité.
 
-c) Options complexes
+# c) Options complexes
 
     Options de type "Square Root" :
 
@@ -135,7 +134,7 @@ c) Options complexes
 
         Utilise des intégrations numériques (Gauss-Legendre) pour résoudre les formules fermées.
 
-4. Intégration Excel (Excel-DNA)
+# 4. Intégration Excel (Excel-DNA)
 
     Fonctions exportées (exemples) :
     csharp
@@ -156,7 +155,7 @@ c) Options complexes
 
         Paramètres du modèle (k1, k2, theta, etc.).
 
-5. Techniques numériques
+# 5. Techniques numériques
 
     Interpolation :
 
@@ -170,7 +169,7 @@ c) Options complexes
 
         Méthode de Newton-Raphson dans BlackScholes.ImpliedVolatility().
 
-6. Exemple d'utilisation dans Excel
+# 6. Exemple d'utilisation dans Excel
 excel
 
 =Export_ParabolicVol_VarianceSwapOption(
@@ -189,7 +188,7 @@ excel
   0          // VolOrOption (0=vol, 1=price)
 )
 
-Résumé
+## Résumé
 
 Le code implémente avec rigueur le modèle de Bergomi à deux facteurs pour :
 
