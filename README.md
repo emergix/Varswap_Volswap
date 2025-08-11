@@ -33,6 +33,9 @@ avec :
 - $$\omega_i$$ : pondérations des facteurs,
 - $$v_i(t,T)$$ : volatilité instantanée des facteurs.
 
+## Le code fourni en csharp implemente les pricipaux instruments de ce marché avec une calibration du modele 
+
+
 ## 4. Application aux variance swaps et volatility swaps
 
 - **Variance swap** : nécessite d'agréger la variance forward entre deux dates (T1, T2), pondérée selon l'échéance.
