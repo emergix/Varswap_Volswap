@@ -29,7 +29,7 @@ $$\xi_t(T) = \xi_0(T) \cdot \exp\left(
 "
 \sum_{i=1}^2 \omega_i X_t^{(i)} - \frac{1}{2} \omega_i^2 v_i(t,T) \right)$$
 avec :
-- $$ X_t^{(i)} $$ : processus gaussiens corrélés,
+- $$X_t^{(i)}$$ : processus gaussiens corrélés,
 - $$ \omega_i $$ : pondérations des facteurs,
 - $$ v_i(t,T) $$ : volatilité instantanée des facteurs.
 
