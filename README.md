@@ -60,6 +60,147 @@ où :
 
 ---
 
+
+1. Structure générale
+
+    Espaces de noms :
+
+        Interpolation : Gère différentes méthodes d'interpolation (linéaire, spline, etc.).
+
+        BergomiTwoFactors : Contient les modèles de volatilité (Bergomi et parabolique).
+
+        BergomiTest : Fournit les fonctions exportables vers Excel via Excel-DNA.
+
+2. Composants clés du modèle de Bergomi
+a) Modèle de volatilité parabolique (ParabolicVolatlityModel)
+
+    Objectif : Modéliser la surface de volatilité locale.
+
+    Paramètres :
+
+        SigmaVariance : Volatilité de la variance.
+
+        SigmaSkew : Pente de la skew.
+
+        SigmaCurvature : Courbure (smile).
+
+        SigmaAlpha : Paramètre de term structure.
+
+    Fonctions :
+
+        getVol() : Calcule la volatilité pour un moneyness F0/K et une maturité T.
+
+        ComputeTurningMoneyness() : Trouve le point où le smile change de comportement.
+
+b) Modèle de Bergomi (BergomiVolatilityModel)
+
+    Paramètres du modèle :
+
+        k1, k2 : Vitesses de retour des facteurs de variance.
+
+        theta : Corrélation entre les facteurs.
+
+        rho : Corrélation spot/variance.
+
+        omega : Volatilité de la volatilité.
+
+    Fonctions :
+
+        getVol() : Calcule la volatilité implicite via BasketVolatility().
+
+3. Calculs financiers
+a) Swaps de variance
+
+    Fonctions clés :
+
+        VarianceSwap_ForwardVariance() : Calcule la variance forward entre T1 et T2.
+
+        Bergomi_VarianceSwapVolatility() : Calcule la volatilité d'un swap de variance.
+
+        Export_ParabolicVol_VarianceSwapOption() : Fonction Excel pour pricer une option sur swap de variance.
+
+b) Swaps de volatilité
+
+    Fonctions clés :
+
+        Bergomi_VarianceToVol() : Transforme la variance en volatilité.
+
+        Export_ParabolicVol_VolSwapOption() : Fonction Excel pour pricer une option sur swap de volatilité.
+
+c) Options complexes
+
+    Options de type "Square Root" :
+
+        Bergomi_SquareRootCall() : Price une option sur la racine carrée de la variance (pour les volatility swaps).
+
+        Utilise des intégrations numériques (Gauss-Legendre) pour résoudre les formules fermées.
+
+4. Intégration Excel (Excel-DNA)
+
+    Fonctions exportées (exemples) :
+    csharp
+
+    [ExcelFunction(Description = "BlackSholes Call pricing")]
+    public static double Export_Call(double f, double k, double t, double v) { ... }
+
+    [ExcelFunction(Description = "Variance Swap Option pricing")]
+    public static double Export_ParabolicVol_VarianceSwapOption(...) { ... }
+
+    Paramètres typiques :
+
+        varlist : Liste des variances.
+
+        datelist : Dates associées.
+
+        T, K : Maturité et strike.
+
+        Paramètres du modèle (k1, k2, theta, etc.).
+
+5. Techniques numériques
+
+    Interpolation :
+
+        Splines, linéaire, constante (gérées par InterpolationStructure).
+
+    Intégration :
+
+        Quadrature de Gauss-Legendre (CGaussLegendre) pour les intégrales complexes.
+
+    Calcul de volatilité implicite :
+
+        Méthode de Newton-Raphson dans BlackScholes.ImpliedVolatility().
+
+6. Exemple d'utilisation dans Excel
+excel
+
+=Export_ParabolicVol_VarianceSwapOption(
+  0.2,       // SigmaVariance
+  -0.1,      // SigmaSkew
+  0.05,      // SigmaCurvature
+  0.5,       // SigmaAlpha
+  A1:A10,    // varlist (variance points)
+  B1:B10,    // datelist (dates)
+  1.0,       // T (maturity)
+  0.22,      // K (strike)
+  0.25,      // T1 (start)
+  2.0,       // T2 (end)
+  0.01,      // dt (time step)
+  15,        // NbLegendre (integration points)
+  0          // VolOrOption (0=vol, 1=price)
+)
+
+Résumé
+
+Le code implémente avec rigueur le modèle de Bergomi à deux facteurs pour :
+
+    Pricer des swaps de variance et de volatilité.
+
+    Calculer les volatilités implicites via des méthodes numériques avancées.
+
+    Exporter ces fonctionnalités vers Excel via Excel-DNA, permettant une utilisation pratique par les traders.
+
+
+
 **Conclusion** :  
 Le modèle de Bergomi offre un cadre robuste pour la valorisation des produits sur la variance et la volatilité,
 en particulier lorsque l'on cherche à intégrer des effets de volatilité stochastique et de corrélation dans un
