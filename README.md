@@ -34,7 +34,7 @@ avec :
 - $$v_i(t,T)$$ : volatilité instantanée des facteurs.
 
 ## Le code fourni en csharp implemente les pricipaux instruments de ce marché avec une calibration du modele 
-
+ **["BergomiModel"](./BergomiModel.cs)** 
 
 ## 4. Application aux variance swaps et volatility swaps
 
