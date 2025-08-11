@@ -170,23 +170,23 @@ où :
         Méthode de Newton-Raphson dans BlackScholes.ImpliedVolatility().
 
 # 6. Exemple d'utilisation dans Excel
-excel
-
+```csharp
 =Export_ParabolicVol_VarianceSwapOption(
-  0.2,       // SigmaVariance
-  -0.1,      // SigmaSkew
-  0.05,      // SigmaCurvature
-  0.5,       // SigmaAlpha
-  A1:A10,    // varlist (variance points)
-  B1:B10,    // datelist (dates)
-  1.0,       // T (maturity)
-  0.22,      // K (strike)
-  0.25,      // T1 (start)
-  2.0,       // T2 (end)
-  0.01,      // dt (time step)
-  15,        // NbLegendre (integration points)
-  0          // VolOrOption (0=vol, 1=price)
+    0.2,       // SigmaVariance
+   -0.1,       // SigmaSkew
+    0.05,      // SigmaCurvature
+    0.5,       // SigmaAlpha
+    A1:A10,    // varlist (variance points)
+    B1:B10,    // datelist (dates)
+    1.0,       // T (maturity)
+    0.22,      // K (strike)
+    0.25,      // T1 (start)
+    2.0,       // T2 (end)
+    0.01,      // dt (time step)
+    15,        // NbLegendre (integration points)
+    0          // VolOrOption (0=vol, 1=price)
 )
+```
 
 ## Résumé
 
